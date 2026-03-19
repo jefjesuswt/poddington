@@ -3,7 +3,7 @@ package container
 import "context"
 
 type Runtime interface {
-	List(ctx context.Context) ([]Instance, error)
+	List(ctx context.Context, all bool) ([]Instance, error)
 	Inspect(ctx context.Context, nameOrId string) (Instance, error)
 	Stop(ctx context.Context, nameOrId string) error
 	Start(ctx context.Context, nameOrId string) error
@@ -19,8 +19,8 @@ func NewService(r Runtime) *Service {
 	}
 }
 
-func (s *Service) ListContainers(ctx context.Context) ([]Instance, error) {
-	return s.runtime.List(ctx)
+func (s *Service) ListContainers(ctx context.Context, all bool) ([]Instance, error) {
+	return s.runtime.List(ctx, all)
 }
 
 func (s *Service) InspectContainer(ctx context.Context, nameOrId string) (Instance, error) {
