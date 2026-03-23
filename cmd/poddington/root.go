@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/jefjesuswt/poddington/cmd/poddington/hub"
+	"github.com/jefjesuswt/poddington/cmd/poddington/node"
 	"github.com/jefjesuswt/poddington/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -20,6 +22,6 @@ var rootCmd = &cobra.Command{
 func init() {
 	ui.SetupCobraUI(rootCmd)
 
-	rootCmd.AddCommand(hubCmd)
-	rootCmd.AddCommand(nodeCmd)
+	rootCmd.AddCommand(hub.Cmd)
+	rootCmd.AddCommand(node.Cmd)
 }

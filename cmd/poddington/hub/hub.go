@@ -1,4 +1,4 @@
-package main
+package hub
 
 import (
 	"github.com/charmbracelet/log"
@@ -8,7 +8,7 @@ import (
 
 var hubConfigPath string
 
-var hubCmd = &cobra.Command{
+var Cmd = &cobra.Command{
 	Use:   "hub",
 	Short: "Starts Poddington in Hub mode (controller)",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -19,5 +19,5 @@ var hubCmd = &cobra.Command{
 }
 
 func init() {
-	hubCmd.Flags().StringVarP(&hubConfigPath, "config", "c", "~/.config/poddington/hub.yaml", "Path to config file")
+	Cmd.Flags().StringVarP(&hubConfigPath, "config", "c", "~/.config/poddington/hub.yaml", "Path to config file")
 }
