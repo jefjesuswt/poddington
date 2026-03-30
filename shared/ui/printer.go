@@ -31,10 +31,11 @@ var (
 			MarginBottom(1).
 			MarginTop(1)
 
-	ColID    = lipgloss.NewStyle().Foreground(PodFrosted).Width(15)
+	ColID    = lipgloss.NewStyle().Foreground(PodFrosted).Width(18)
 	ColName  = lipgloss.NewStyle().Foreground(PodPowder).Bold(true).Width(25)
 	ColState = lipgloss.NewStyle().Width(12)
 	ColImage = lipgloss.NewStyle().Foreground(PodGrape).Italic(true)
+	ColNodeAddress = lipgloss.NewStyle().Foreground(PodPowder).Width(20)
 
 	InspectBlock = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), false, false, false, true).
@@ -191,4 +192,24 @@ func PrintLogs(target, logs string) {
 		fmt.Println(LogBlock.Render(cleanLogs))
 	}
 	fmt.Println()
+}
+
+func PrintNodeListHeader() {
+	fmt.Printf("  %s%s%s%s\n",
+		ColID.Foreground(PodGrape).Render("NODE ID"),
+		ColName.Foreground(PodGrape).Render("NAME"),
+		ColNodeAddress.Foreground(PodGrape).Render("ADDRESS"),
+		lipgloss.NewStyle().Foreground(PodGrape).Render("STATUS"),
+	)
+}
+
+func PrintNodeRow(id, name, address, lastSeen string) {
+	status := lipgloss.NewStyle().Foreground(PodIndigo).Italic(true).Render(fmt.Sprintf("(Last seen: %s ago)", lastSeen))
+
+	fmt.Printf("  %s%s%s%s\n",
+		ColID.Render(id),
+		ColName.Render(name),
+		ColNodeAddress.Render(address),
+		status,
+	)
 }

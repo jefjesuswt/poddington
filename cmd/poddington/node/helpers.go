@@ -4,26 +4,27 @@ import (
 	"context"
 
 	"charm.land/lipgloss/v2"
-	"github.com/jefjesuswt/poddington/internal/core/container"
-	"github.com/jefjesuswt/poddington/internal/infra/podman"
-	"github.com/jefjesuswt/poddington/internal/ui"
+	"github.com/jefjesuswt/poddington/cmd/config"
+	"github.com/jefjesuswt/poddington/internal/container"
+	"github.com/jefjesuswt/poddington/shared/ui"
 )
 
-var ctx context.Context
 
-func InitContainerService() (*container.Service, error) {
-	client, err := podman.NewClient()
+func InitContainerService(ctx context.Context) (*container.Service, error) {
+	client, err := config.NewPodmanClient()
 	if err != nil {
 		return nil, ui.PrintError("error creating podman client: %w", err)
 	}
-	return container.NewService(client), nil
+	podmanRepo := container.NewRepository(client)
+	return container.NewService(podmanRepo), nil
 }
 
 func WithContainerAction(
+	ctx context.Context,
 	args []string,
 	action func(ctx context.Context, svc *container.Service, target, highlighted string) error,
 ) error {
-	svc, err := InitContainerService()
+	svc, err := InitContainerService(ctx)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,7 @@ package hub
 
 import (
 	"github.com/charmbracelet/log"
-	"github.com/jefjesuswt/poddington/internal/ui"
+	"github.com/jefjesuswt/poddington/shared/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -20,4 +20,8 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().StringVarP(&hubConfigPath, "config", "c", "~/.config/poddington/hub.yaml", "Path to config file")
+
+	Cmd.AddCommand(addCommand)
+	Cmd.AddCommand(listCommand)
+	Cmd.AddCommand(removeCommand)
 }

@@ -2,7 +2,7 @@ package node
 
 import (
 	"github.com/charmbracelet/log"
-	"github.com/jefjesuswt/poddington/internal/ui"
+	"github.com/jefjesuswt/poddington/shared/ui"
 	"github.com/spf13/cobra"
 )
 
