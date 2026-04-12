@@ -22,11 +22,15 @@ func NewSQLite(dbPath string) (*Database, error) {
 	dsn := fmt.Sprintf("file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)", dbPath)
 
 	writePool, err := sql.Open("sqlite", dsn)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	writePool.SetMaxOpenConns(1)
 
 	readPool, err := sql.Open("sqlite", dsn)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	readPool.SetMaxOpenConns(25)
 
 	return &Database{Read: readPool, Write: writePool}, nil

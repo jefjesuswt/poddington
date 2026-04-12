@@ -109,6 +109,8 @@ func (r *Repository) GetByID(ctx context.Context, id string) (Node, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Node{}, ErrNodeNotFound
 		}
+
+		return Node{}, fmt.Errorf("failed to get node: %w", err)
 	}
 
 	return n, nil
@@ -135,7 +137,7 @@ func (r *Repository) Delete(ctx context.Context, id string) error {
 func (r *Repository) UpdateLastSeen(ctx context.Context, id string) error {
 	const query = `UPDATE fleet_nodes SET last_seen = ? WHERE id = ?`
 
-	result, err := r.db.Write.ExecContext(ctx, query, time.Now(), id)
+	result, err := r.db.Write.ExecContext(ctx, query, time.Now().UTC(), id)
 	if err != nil {
 		return err
 	}

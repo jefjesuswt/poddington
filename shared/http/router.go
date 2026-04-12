@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -25,8 +26,8 @@ func NewRouter() *Router {
 
 // middlewares and composition
 
-func (r *Router) Use(m Middleware) {
-	r.middlewares = append(r.middlewares, m)
+func (r *Router) Use(m ...Middleware) {
+	r.middlewares = append(r.middlewares, m...)
 }
 
 func (r *Router) With(m Middleware) *Router {
@@ -84,7 +85,9 @@ func (r *Router) handle(method, path string, handler http.HandlerFunc) {
 		fullPath = "/"
 	}
 
-	r.mux.Handle(method+" "+path, finalHandler)
+	fmt.Printf("🛠 DEBUG ROUTER: Registrando [%s %s]\n", method, fullPath)
+
+	r.mux.Handle(method+" "+fullPath, finalHandler)
 }
 
 // http methods
@@ -134,12 +137,12 @@ func (r *Router) NotFound(handler http.HandlerFunc) {
 // server
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	handler, pattern := r.mux.Handler(req)
+	_, pattern := r.mux.Handler(req)
 
 	if pattern == "" && r.notFoundHandler != nil {
 		r.notFoundHandler(w, req)
 		return
 	}
 
-	handler.ServeHTTP(w, req)
+	r.mux.ServeHTTP(w, req)
 }

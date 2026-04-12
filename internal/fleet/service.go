@@ -27,12 +27,12 @@ func (s *Service) RegisterNode(ctx context.Context, name, address string) (Node,
 	token := newSecureString(32)
 
 	node := Node{
-		ID: nodeID,
-		Name: name,
-		Address: address,
-		Token: token,
+		ID:        nodeID,
+		Name:      name,
+		Address:   address,
+		Token:     token,
 		CreatedAt: time.Now().UTC(),
-		LastSeen: time.Now().UTC(),
+		LastSeen:  time.Now().UTC(),
 	}
 
 	if err := s.repo.Save(ctx, node); err != nil {
@@ -50,7 +50,16 @@ func (s *Service) RemoveNode(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *Service) PingNode(ctx context.Context, id string) error {
+func (s *Service) PingNode(ctx context.Context, id, token string) error {
+	node, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if node.Token != token {
+		return fmt.Errorf("unauthorized: invalid token for node: %s", id)
+	}
+
 	return s.repo.UpdateLastSeen(ctx, id)
 }
 
