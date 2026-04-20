@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jefjesuswt/poddington/cmd/config"
+	"github.com/jefjesuswt/poddington/config"
 )
 
 type Repository struct {

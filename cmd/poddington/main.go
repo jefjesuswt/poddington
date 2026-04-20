@@ -15,7 +15,7 @@ var rootCmd = &cobra.Command{
 	Short: "A CLI tool to manage Podman containers",
 	Long:  "An All-in-One CLI tool for managing Podman containers, it allows the user to orchestrate multiple servers and manage their containers from a single interface.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ui.PrintGradientTitle("🐳 PODDINGTON CORE CLI")
+		ui.PrintTitle("🐳 PODDINGTON CORE CLI")
 		fmt.Println("  Use 'poddington --help' to see available commands.")
 	},
 }
@@ -28,7 +28,6 @@ func main() {
 }
 
 func init() {
-	ui.SetupCobraUI(rootCmd)
 
 	rootCmd.AddCommand(hub.Cmd)
 	rootCmd.AddCommand(node.Cmd)

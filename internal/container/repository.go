@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/containers/podman/v4/pkg/bindings/containers"
-	"github.com/jefjesuswt/poddington/cmd/config"
+	"github.com/jefjesuswt/poddington/config"
 )
 
 type Repository struct {
@@ -36,8 +36,8 @@ func (r *Repository) List(_ context.Context, all bool) ([]Instance, error) {
 		}
 
 		result = append(result, Instance{
-			ID: instance.ID[:12],
-			Name: name,
+			ID:    instance.ID[:12],
+			Name:  name,
 			State: instance.State,
 			Image: instance.Image,
 		})
@@ -86,15 +86,15 @@ func (r *Repository) Inspect(_ context.Context, target string) (Instance, error)
 	}
 
 	return Instance{
-		ID: instance.ID[:12],
-		Name: instance.Name,
-		State: instance.State.Status,
-		Image: instance.Image,
-		Created: instance.Created.Format("2006-01-02 15:04:05"),
+		ID:        instance.ID[:12],
+		Name:      instance.Name,
+		State:     instance.State.Status,
+		Image:     instance.Image,
+		Created:   instance.Created.Format("2006-01-02 15:04:05"),
 		IPAddress: ip,
-		Cmd: cmd,
-		Ports: ports,
-		Mounts: mounts,
+		Cmd:       cmd,
+		Ports:     ports,
+		Mounts:    mounts,
 	}, nil
 }
 
@@ -157,7 +157,7 @@ func (r *Repository) Restart(_ context.Context, target string) error {
 func (r *Repository) Remove(_ context.Context, target string, force bool) error {
 	opts := new(containers.RemoveOptions).WithForce(force)
 
-	reports, err := containers.Remove(r.client.Ctx, target, opts);
+	reports, err := containers.Remove(r.client.Ctx, target, opts)
 	if err != nil {
 		return fmt.Errorf("failed to remove container: %w", err)
 	}

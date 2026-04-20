@@ -1,10 +1,10 @@
 package fleet
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 
-	"github.com/charmbracelet/log"
 	podHTTP "github.com/jefjesuswt/poddington/shared/http"
 )
 
@@ -21,7 +21,7 @@ func NewHandler(s *Service) *Handler {
 func (h *Handler) RegisterRoutes(router *podHTTP.Router) {
 
 	router.NotFound(func(w http.ResponseWriter, req *http.Request) {
-		log.Warn("🚨 404 Interceptado", "method", req.Method, "path", req.URL.Path)
+		slog.Warn("🚨 404 Interceptado", "method", req.Method, "path", req.URL.Path)
 		podHTTP.ErrorJSON(w, http.StatusNotFound, "Endpoint not found in Poddington Hub.")
 	})
 
