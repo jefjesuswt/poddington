@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"runtime/debug"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	podHTTP "github.com/jefjesuswt/poddington/shared/http"
 	"github.com/jefjesuswt/poddington/shared/ui"
 	"github.com/spf13/cobra"
+	"tailscale.com/tsnet"
 )
 
 var hubConfigPath string
@@ -35,13 +37,30 @@ var Cmd = &cobra.Command{
 		handler := fleet.NewHandler(svc)
 		handler.RegisterRoutes(router)
 
-		port := "8443"
+		tsAuthKey := os.Getenv("TS_AUTH_KEY")
+		if tsAuthKey == "" {
+			return ui.WrapError("TS_AUTH_KEY environment variable is required")
+		}
 
 		slog.Info("Loading configuration...", "path", hubConfigPath)
 		slog.Info("Hub starting...", "db", "SQLite WAL")
-		slog.Info("Listening for incoming node connections...", "port", port)
+		slog.Info("Connecting to Tailscale network...")
 
-		if err := http.ListenAndServe(":"+port, router); err != nil {
+		tsServer := &tsnet.Server{
+			Hostname: "poddington-hub",
+			AuthKey:  tsAuthKey,
+			Logf:     func(format string, args ...any) {},
+		}
+		defer tsServer.Close()
+
+		ln, err := tsServer.Listen("tcp", ":80")
+		if err != nil {
+			return ui.WrapError("failed to create tailscale listener: %w", err)
+		}
+
+		slog.Info("Hub online and using secure mesh.", "hostname", "poddington-hub")
+
+		if err := http.Serve(ln, router); err != nil {
 			return ui.WrapError("server crashed: %w", err)
 		}
 

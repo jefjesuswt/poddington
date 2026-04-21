@@ -35,3 +35,4 @@ func NewSQLite(dbPath string) (*Database, error) {
 
 	return &Database{Read: readPool, Write: writePool}, nil
 }
+

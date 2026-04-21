@@ -29,6 +29,5 @@ func PrintKeyValue(key, value string) {
 }
 
 func WrapError(format string, a ...any) error {
-	msg := fmt.Sprintf(format, a...)
-	return fmt.Errorf("\n%s✖ ERROR:%s %s", Red, Reset, msg)
+	return fmt.Errorf("\n"+Red+"✖ ERROR:"+Reset+" "+format, a...)
 }

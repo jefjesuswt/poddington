@@ -19,7 +19,6 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().StringVar(&HubAddress, "hub-address", "127.0.0.1:8443", "IP address and port to connect to.")
-
+	Cmd.PersistentFlags().StringVar(&HubAddress, "hub-address", "127.0.0.1:8443", "IP address and port to connect to.")
 	Cmd.AddCommand(daemonCmd)
 }
