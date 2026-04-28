@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -54,9 +53,15 @@ func (r *Router) Route(pattern string, fn func(*Router)) *Router {
 }
 
 func (r *Router) Mount(pattern string, handler http.Handler) {
-	mountPath := strings.TrimPrefix(r.prefix+pattern, "/") + "/"
+	basePath := r.prefix + pattern
 
-	r.mux.Handle(mountPath, handler)
+	mountPath := basePath
+
+	if !strings.HasSuffix(basePath, "/") {
+		mountPath += "/"
+	}
+
+	r.mux.Handle(mountPath, http.StripPrefix(basePath, handler))
 }
 
 // helpers
@@ -84,8 +89,6 @@ func (r *Router) handle(method, path string, handler http.HandlerFunc) {
 	if fullPath == "" {
 		fullPath = "/"
 	}
-
-	fmt.Printf("🛠 DEBUG ROUTER: Registrando [%s %s]\n", method, fullPath)
 
 	r.mux.Handle(method+" "+fullPath, finalHandler)
 }
