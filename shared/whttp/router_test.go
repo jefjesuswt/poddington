@@ -1,4 +1,4 @@
-package http
+package whttp
 
 import (
 	"log/slog"
@@ -11,8 +11,8 @@ import (
 func TestRouter_NotFound(t *testing.T) {
 	r := NewRouter()
 
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		slog.Warn("404 Intercepted!", "method", r.Method, "path", r.URL.Path)
+	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
+		slog.Warn("404 Intercepted!", "method", req.Method, "path", req.URL.Path)
 		ErrorJSON(w, http.StatusNotFound, "404 Not Found.")
 	})
 
@@ -41,9 +41,9 @@ func TestRouter_Methods(t *testing.T) {
 
 	r := NewRouter()
 
-	testHandler := func(w http.ResponseWriter, r *http.Request) {
+	testHandler := func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(r.Method + " OK"))
+		w.Write([]byte(req.Method + " OK"))
 	}
 
 	r.Get("/test", testHandler)
@@ -99,15 +99,15 @@ func TestRouter_Use(t *testing.T) {
 	r := NewRouter()
 
 	spyMiddleware := func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("X-Spy-Middleware", "been here")
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, req)
 		})
 	}
 
 	r.Use(spyMiddleware)
 
-	r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/test", func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -132,7 +132,7 @@ func TestRouter_Route(t *testing.T) {
 	r := NewRouter()
 
 	r.Route("/api", func(api *Router) {
-		api.Get("/status", func(w http.ResponseWriter, r *http.Request) {
+		api.Get("/status", func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
 	})
@@ -164,7 +164,7 @@ func TestRouter_Mount(t *testing.T) {
 	r := NewRouter()
 
 	sr := NewRouter()
-	sr.Get("/status", func(w http.ResponseWriter, r *http.Request) {
+	sr.Get("/status", func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -195,19 +195,19 @@ func TestRouter_Group(t *testing.T) {
 	r := NewRouter()
 
 	spyMiddleware := func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("X-Spy-Middleware", "been here")
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, req)
 		})
 	}
 
-	r.Get("/not-spied", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/not-spied", func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
 	r.Group(func(api *Router) {
 		api.Use(spyMiddleware)
-		api.Get("/spied", func(w http.ResponseWriter, r *http.Request) {
+		api.Get("/spied", func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
 	})

@@ -12,7 +12,7 @@ var Cmd = &cobra.Command{
 	Use:   "node",
 	Short: "Run a node that connects to the hub",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		slog.Info("Poddington starting...", "mode", "NODE")
+		slog.Info("Walroos starting...", "mode", "NODE")
 		slog.Info("Connecting to hub...", "hub", HubAddress)
 		return nil
 	},

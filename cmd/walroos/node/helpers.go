@@ -3,9 +3,9 @@ package node
 import (
 	"context"
 
-	"github.com/jefjesuswt/poddington/config"
-	"github.com/jefjesuswt/poddington/internal/container"
-	"github.com/jefjesuswt/poddington/shared/ui"
+	"github.com/jefjesuswt/walroos/config"
+	"github.com/jefjesuswt/walroos/internal/container"
+	"github.com/jefjesuswt/walroos/shared/ui"
 )
 
 func InitContainerService(ctx context.Context) (*container.Service, error) {

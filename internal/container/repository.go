@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/containers/podman/v4/pkg/bindings/containers"
-	"github.com/jefjesuswt/poddington/config"
+	"github.com/jefjesuswt/walroos/config"
 )
 
 type Repository struct {

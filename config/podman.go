@@ -9,8 +9,8 @@ import (
 )
 
 type PodmanClient struct {
-	// no es un ctx normal, es el ctx custom de podman, con parametros ya inyectados
-	// contiene http y socket ya insertado, la api de podman exige usarlo
+	// not a normal ctx, it's a custom podman ctx with parameters already injected
+	// contains http and socket already inserted, podman api requires using it
 	Ctx context.Context
 }
 

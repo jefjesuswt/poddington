@@ -8,18 +8,27 @@ import (
 	"time"
 )
 
-type Service struct {
-	repo *Repository
+type NodeStorer interface {
+	Migrate(ctx context.Context) error
+	Save(ctx context.Context, n Node) error
+	GetAll(ctx context.Context) ([]Node, error)
+	GetByID(ctx context.Context, id string) (Node, error)
+	Delete(ctx context.Context, id string) error
+	UpdateLastSeen(ctx context.Context, id string) error
 }
 
-func NewService(repo *Repository) *Service {
+type Service struct {
+	storer NodeStorer
+}
+
+func NewService(storer NodeStorer) *Service {
 	return &Service{
-		repo: repo,
+		storer: storer,
 	}
 }
 
 func (s *Service) Init(ctx context.Context) error {
-	return s.repo.Migrate(ctx)
+	return s.storer.Migrate(ctx)
 }
 
 func (s *Service) RegisterNode(ctx context.Context, name, address string) (Node, error) {
@@ -35,7 +44,7 @@ func (s *Service) RegisterNode(ctx context.Context, name, address string) (Node,
 		LastSeen:  time.Now().UTC(),
 	}
 
-	if err := s.repo.Save(ctx, node); err != nil {
+	if err := s.storer.Save(ctx, node); err != nil {
 		return Node{}, fmt.Errorf("failed to save node: %w", err)
 	}
 
@@ -43,15 +52,15 @@ func (s *Service) RegisterNode(ctx context.Context, name, address string) (Node,
 }
 
 func (s *Service) ListNodes(ctx context.Context) ([]Node, error) {
-	return s.repo.GetAll(ctx)
+	return s.storer.GetAll(ctx)
 }
 
 func (s *Service) RemoveNode(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+	return s.storer.Delete(ctx, id)
 }
 
 func (s *Service) PingNode(ctx context.Context, id, token string) error {
-	node, err := s.repo.GetByID(ctx, id)
+	node, err := s.storer.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -60,7 +69,7 @@ func (s *Service) PingNode(ctx context.Context, id, token string) error {
 		return fmt.Errorf("unauthorized: invalid token for node: %s", id)
 	}
 
-	return s.repo.UpdateLastSeen(ctx, id)
+	return s.storer.UpdateLastSeen(ctx, id)
 }
 
 func newSecureString(length int) string {

@@ -1,4 +1,4 @@
-package http
+package whttp
 
 import (
 	"net/http"
@@ -57,4 +57,3 @@ func TestErrorJSON(t *testing.T) {
 		})
 	}
 }
-

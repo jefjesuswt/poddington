@@ -1,4 +1,4 @@
-module github.com/jefjesuswt/poddington
+module github.com/jefjesuswt/walroos
 
 go 1.26.1
 

@@ -8,9 +8,9 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/jefjesuswt/poddington/internal/fleet"
-	podHTTP "github.com/jefjesuswt/poddington/shared/http"
-	"github.com/jefjesuswt/poddington/shared/ui"
+	"github.com/jefjesuswt/walroos/internal/fleet"
+	"github.com/jefjesuswt/walroos/shared/ui"
+	"github.com/jefjesuswt/walroos/shared/whttp"
 	"github.com/spf13/cobra"
 	"tailscale.com/tsnet"
 )
@@ -19,18 +19,26 @@ var hubConfigPath string
 
 var Cmd = &cobra.Command{
 	Use:   "hub",
-	Short: "Starts Poddington in Hub mode (controller)",
+	Short: "Starts Walroos in Hub mode (controller)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		ctx := cmd.Context()
-		ui.PrintTitle("Poddington Hub Initialization")
+		ui.PrintTitle("Walroos Hub Initialization")
 
-		svc, err := InitFleetService(ctx)
+		svc, cleanup, err := InitFleetService(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to start database. %w", err)
 		}
 
-		router := podHTTP.NewRouter()
+		defer func() {
+			if err := cleanup(); err != nil {
+				slog.Error("error closing database", "err", err)
+			} else {
+				slog.Info("Database closed successfully")
+			}
+		}()
+
+		router := whttp.NewRouter()
 
 		router.Use(withLogger, withRecoverer)
 
@@ -47,7 +55,7 @@ var Cmd = &cobra.Command{
 		slog.Info("Connecting to Tailscale network...")
 
 		tsServer := &tsnet.Server{
-			Hostname: "poddington-hub",
+			Hostname: "walroos-hub",
 			AuthKey:  tsAuthKey,
 			Logf:     func(format string, args ...any) {},
 		}
@@ -58,7 +66,7 @@ var Cmd = &cobra.Command{
 			return ui.WrapError("failed to create tailscale listener: %w", err)
 		}
 
-		slog.Info("Hub online and using secure mesh.", "hostname", "poddington-hub")
+		slog.Info("Hub online and using secure mesh.", "hostname", "walroos-hub")
 
 		if err := http.Serve(ln, router); err != nil {
 			return ui.WrapError("server crashed: %w", err)
@@ -69,33 +77,33 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().StringVarP(&hubConfigPath, "config", "c", "~/.config/poddington/hub.yaml", "Path to config file")
+	Cmd.Flags().StringVarP(&hubConfigPath, "config", "c", "~/.config/walroos/hub.yaml", "Path to config file")
 
 	Cmd.AddCommand(addCommand)
 }
 
 func withLogger(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		start := time.Now()
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, req)
 		duration := time.Since(start)
 
 		slog.Info("HTTP Request",
-			"method", r.Method,
-			"path", r.URL.Path,
+			"method", req.Method,
+			"path", req.URL.Path,
 			"duration", duration,
 		)
 	})
 }
 
 func withRecoverer(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
 				slog.Error("PANIC in HTTP", "error", err, "trace", string(debug.Stack()))
-				podHTTP.ErrorJSON(w, http.StatusInternalServerError, "Internal Server Error")
+				whttp.ErrorJSON(w, http.StatusInternalServerError, "Internal Server Error")
 			}
 		}()
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, req)
 	})
 }

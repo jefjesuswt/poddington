@@ -8,26 +8,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jefjesuswt/poddington/config"
+	"github.com/jefjesuswt/walroos/config"
 )
 
-type Repository struct {
+type SQLiteStore struct {
 	db *config.Database
 }
 
-func NewRepository(db *config.Database) *Repository {
-	return &Repository{
+func NewSQLiteStore(db *config.Database) *SQLiteStore {
+	return &SQLiteStore{
 		db: db,
 	}
 }
 
-func (r *Repository) Migrate(ctx context.Context) error {
+func (s *SQLiteStore) Migrate(ctx context.Context) error {
 	const query = `
 	BEGIN IMMEDIATE;
 	CREATE TABLE IF NOT EXISTS fleet_nodes (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL UNIQUE,
-		address TEXT NOT NULL,
+		address TEXT NOT NULL UNIQUE,
 		token TEXT NOT NULL,
 		created_at DATETIME NOT NULL,
 		last_seen DATETIME NOT NULL
@@ -35,17 +35,17 @@ func (r *Repository) Migrate(ctx context.Context) error {
 	COMMIT;
 	`
 
-	_, err := r.db.Write.ExecContext(ctx, query)
+	_, err := s.db.Write.ExecContext(ctx, query)
 	return err
 }
 
-func (r *Repository) Save(ctx context.Context, n Node) error {
+func (s *SQLiteStore) Save(ctx context.Context, n Node) error {
 	const query = `
 		INSERT INTO fleet_nodes (id, name, address, token, created_at, last_seen)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	_, err := r.db.Write.ExecContext(
+	_, err := s.db.Write.ExecContext(
 		ctx,
 		query,
 		n.ID,
@@ -57,7 +57,11 @@ func (r *Repository) Save(ctx context.Context, n Node) error {
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed: fleet_nodes.name") {
-			return ErrNodeAlreadyExists
+			return ErrNodeNameAlreadyExists
+		}
+
+		if strings.Contains(err.Error(), "UNIQUE constraint failed: fleet_nodes.address") {
+			return ErrNodeAddressAlreadyExists
 		}
 		return fmt.Errorf("failed to save node: %w", err)
 	}
@@ -65,10 +69,10 @@ func (r *Repository) Save(ctx context.Context, n Node) error {
 	return nil
 }
 
-func (r *Repository) GetAll(ctx context.Context) ([]Node, error) {
+func (s *SQLiteStore) GetAll(ctx context.Context) ([]Node, error) {
 	const query = `SELECT id, name, address, token, created_at, last_seen FROM fleet_nodes`
 
-	rows, err := r.db.Read.QueryContext(ctx, query)
+	rows, err := s.db.Read.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nodes: %w", err)
 	}
@@ -93,12 +97,12 @@ func (r *Repository) GetAll(ctx context.Context) ([]Node, error) {
 	return nodes, rows.Err()
 }
 
-func (r *Repository) GetByID(ctx context.Context, id string) (Node, error) {
+func (s *SQLiteStore) GetByID(ctx context.Context, id string) (Node, error) {
 	const query = `SELECT id, name, address, token, created_at, last_seen FROM fleet_nodes WHERE id = ?`
 
 	var n Node
 
-	if err := r.db.Read.QueryRowContext(ctx, query, id).Scan(
+	if err := s.db.Read.QueryRowContext(ctx, query, id).Scan(
 		&n.ID,
 		&n.Name,
 		&n.Address,
@@ -116,12 +120,12 @@ func (r *Repository) GetByID(ctx context.Context, id string) (Node, error) {
 	return n, nil
 }
 
-func (r *Repository) Delete(ctx context.Context, id string) error {
+func (s *SQLiteStore) Delete(ctx context.Context, id string) error {
 	const query = `DELETE FROM fleet_nodes WHERE id = ?`
 
-	result, err := r.db.Write.ExecContext(ctx, query, id)
+	result, err := s.db.Write.ExecContext(ctx, query, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete node: %w", err)
 	}
 
 	rows, err := result.RowsAffected()
@@ -134,10 +138,10 @@ func (r *Repository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) UpdateLastSeen(ctx context.Context, id string) error {
+func (s *SQLiteStore) UpdateLastSeen(ctx context.Context, id string) error {
 	const query = `UPDATE fleet_nodes SET last_seen = ? WHERE id = ?`
 
-	result, err := r.db.Write.ExecContext(ctx, query, time.Now().UTC(), id)
+	result, err := s.db.Write.ExecContext(ctx, query, time.Now().UTC(), id)
 	if err != nil {
 		return err
 	}

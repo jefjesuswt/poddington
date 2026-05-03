@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jefjesuswt/poddington/internal/fleet"
-	"github.com/jefjesuswt/poddington/shared/ui"
+	"github.com/jefjesuswt/walroos/internal/fleet"
+	"github.com/jefjesuswt/walroos/shared/ui"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/spf13/cobra"
@@ -22,13 +22,13 @@ var (
 
 var daemonCmd = &cobra.Command{
 	Use:   "daemon",
-	Short: "Starts the Poddington Node background worker",
+	Short: "Starts the Walroos Node background worker",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if nodeID == "" || nodeToken == "" {
 			return ui.WrapError("node-id and node-token are required to start the daemon")
 		}
 
-		ui.PrintTitle("Poddington Node Daemon Initialization")
+		ui.PrintTitle("Walroos Node Daemon Initialization")
 		slog.Info("Starting background worker...", "hub", HubAddress, "id", nodeID)
 
 		ticker := time.NewTicker(15 * time.Second)

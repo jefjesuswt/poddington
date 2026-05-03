@@ -36,3 +36,20 @@ func NewSQLite(dbPath string) (*Database, error) {
 	return &Database{Read: readPool, Write: writePool}, nil
 }
 
+func (db *Database) Close() error {
+	var errs []error
+
+	if err := db.Read.Close(); err != nil {
+		errs = append(errs, fmt.Errorf("error closing read pool: %w", err))
+	}
+
+	if err := db.Write.Close(); err != nil {
+		errs = append(errs, fmt.Errorf("error closing write pool: %w", err))
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("failed to close database with errors: %v", errs)
+	}
+
+	return nil
+}

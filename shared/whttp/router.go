@@ -1,4 +1,4 @@
-package http
+package whttp
 
 import (
 	"net/http"

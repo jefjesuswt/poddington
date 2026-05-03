@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	ErrNodeNotFound      = errors.New("node not found")
-	ErrNodeAlreadyExists = errors.New("node already exists")
+	ErrNodeNotFound             = errors.New("node not found")
+	ErrNodeNameAlreadyExists    = errors.New("node name already exists")
+	ErrNodeAddressAlreadyExists = errors.New("node address already exists")
 )
 
 type Node struct {
